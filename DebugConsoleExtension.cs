@@ -34,8 +34,8 @@ public static class DebugConsoleExtension
         FantabulousDebugger.Logger.LogInfo("Developer console created");
     }
 
-    [HarmonyPatch(typeof(DeveloperConsole), "Update")]
-    public class DeveloperConsoleUpdatePatch
+    /*[HarmonyPatch(typeof(DeveloperConsole), "Update")]
+    public class DeveloperConsoleTranspilerPatch
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -65,6 +65,24 @@ public static class DebugConsoleExtension
             }
 
             return codes.AsEnumerable();
+        }
+    }*/
+
+    [HarmonyPatch(typeof(DeveloperConsole), "Update")]
+    public class DeveloperConsoleBetterMegajumpsGodmodePatch
+    {
+        public static void Prefix(DeveloperConsole __instance)
+        {
+            if (__instance.player == null)
+            {
+                __instance.player = GameObject.Find("Player");
+                return;
+            }
+        }
+
+        public static void Postfix(DeveloperConsole __instance)
+        {
+            
         }
     }
 }
