@@ -1,4 +1,8 @@
 using UnityEngine;
+using HarmonyLib;
+using System.Collections.Generic;
+using System.Reflection.Emit;
+using System.Linq;
 
 namespace FantabulousDebugger;
 
@@ -28,5 +32,39 @@ public static class DebugConsoleExtension
         console.MainGUI = mainGUI;
         
         FantabulousDebugger.Logger.LogInfo("Developer console created");
+    }
+
+    [HarmonyPatch(typeof(DeveloperConsole), "Update")]
+    public class DeveloperConsoleUpdatePatch
+    {
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            for (var index = 0; index < codes.Count; index++)
+            {
+                var operation = codes[index];
+                
+                if (operation.opcode == OpCodes.Ldfld)
+                {
+                    // FantabulousDebugger.Logger.LogInfo($"Ldfld operation at index {index}: {operation.operand?.ToString()}");
+                    if (operation.operand?.ToString() == "System.Boolean godMode")
+                    {
+                        codes[index] = new CodeInstruction(OpCodes.Pop);
+                        codes[index].operand = null;
+                        codes.Insert(index + 1, new CodeInstruction(OpCodes.Ldc_I4_0));
+                    }
+
+                    if (operation.operand?.ToString() == "System.Boolean megaJumps")
+                    {
+                        codes[index] = new CodeInstruction(OpCodes.Pop);
+                        codes[index].operand = null;
+                        codes.Insert(index + 1, new CodeInstruction(OpCodes.Ldc_I4_0));
+                    }
+                }
+            }
+
+            return codes.AsEnumerable();
+        }
     }
 }
