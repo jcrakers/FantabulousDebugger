@@ -34,7 +34,7 @@ public static class DebugConsoleExtension
         FantabulousDebugger.Logger.LogInfo("Developer console created");
     }
 
-    /*[HarmonyPatch(typeof(DeveloperConsole), "Update")]
+    [HarmonyPatch(typeof(DeveloperConsole), "Update")]
     public class DeveloperConsoleTranspilerPatch
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -45,28 +45,29 @@ public static class DebugConsoleExtension
             {
                 var operation = codes[index];
                 
-                if (operation.opcode == OpCodes.Ldfld)
+                if (operation.opcode == OpCodes.Ldstr)
                 {
-                    // FantabulousDebugger.Logger.LogInfo($"Ldfld operation at index {index}: {operation.operand?.ToString()}");
-                    if (operation.operand?.ToString() == "System.Boolean godMode")
+                    // Replace old command names with easier ones
+                    if (operation.operand?.ToString() == "tpmetoherenow")
                     {
-                        codes[index] = new CodeInstruction(OpCodes.Pop);
-                        codes[index].operand = null;
-                        codes.Insert(index + 1, new CodeInstruction(OpCodes.Ldc_I4_0));
+                        codes[index].operand = "tp";
                     }
 
-                    if (operation.operand?.ToString() == "System.Boolean megaJumps")
+                    if (operation.operand?.ToString() == "givemegodmodeplease")
                     {
-                        codes[index] = new CodeInstruction(OpCodes.Pop);
-                        codes[index].operand = null;
-                        codes.Insert(index + 1, new CodeInstruction(OpCodes.Ldc_I4_0));
+                        codes[index].operand = "godmode";
+                    }
+
+                    if (operation.operand?.ToString() == "jumparoundlikebugsbunny")
+                    {
+                        codes[index].operand = "megajumps";
                     }
                 }
             }
 
             return codes.AsEnumerable();
         }
-    }*/
+    }
 
     [HarmonyPatch(typeof(DeveloperConsole), "Update")]
     public class DeveloperConsoleBetterMegajumpsGodmodePatch
@@ -82,7 +83,7 @@ public static class DebugConsoleExtension
 
         public static void Postfix(DeveloperConsole __instance)
         {
-            
+
         }
     }
 }
