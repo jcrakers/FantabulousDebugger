@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FantabulousDebugger;
 
-public static class DebugConsoleExtension
+public static class LegacyDebugConsoleExtension
 {
     public static void CreateDeveloperConsole()
     {
@@ -19,19 +19,19 @@ public static class DebugConsoleExtension
 
         if (player == null)
         {
-            FantabulousDebugger.Logger.LogError("Player not found for developer console");
+            FantabulousDebugger.Logger.LogError("Player not found for legacy console");
             return;
         }
         if (mainGUI == null)
         {
-            FantabulousDebugger.Logger.LogError("MainGUI not found for developer console");
+            FantabulousDebugger.Logger.LogError("MainGUI not found for legacy console");
             return;
         }
 
         console.player = player;
         console.MainGUI = mainGUI;
         
-        FantabulousDebugger.Logger.LogInfo("Developer console created");
+        FantabulousDebugger.Logger.LogInfo("Legacy console created");
     }
 
     [HarmonyPatch(typeof(DeveloperConsole), "Update")]
@@ -69,21 +69,13 @@ public static class DebugConsoleExtension
         }
     }
 
-    [HarmonyPatch(typeof(DeveloperConsole), "Update")]
-    public class DeveloperConsoleBetterMegajumpsGodmodePatch
+    [HarmonyPatch(typeof(DeveloperConsole), "MegaJumps")]
+    public class DeveloperConsoleMegajumpsFixPatch
     {
         public static void Prefix(DeveloperConsole __instance)
         {
-            if (__instance.player == null)
-            {
-                __instance.player = GameObject.Find("Player");
-                return;
-            }
-        }
-
-        public static void Postfix(DeveloperConsole __instance)
-        {
-
+            __instance.visible = false;
+            __instance.currText = string.Empty;
         }
     }
 }
