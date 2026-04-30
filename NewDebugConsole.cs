@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace FantabulousDebugger;
 
@@ -11,6 +12,7 @@ public class NewDebugConsole : MonoBehaviour
     {
         GameObject consoleObject = new GameObject("DeveloperConsole");
         NewDebugConsole console = consoleObject.AddComponent<NewDebugConsole>();
+        Commands commands = consoleObject.AddComponent<Commands>();
         GameObject.DontDestroyOnLoad(consoleObject);
 
         player = GameObject.Find("Player");
@@ -38,7 +40,7 @@ public class NewDebugConsole : MonoBehaviour
         }
     }
 
-    private string currentInput = "";
+
     static private Vector2 scrollPos;
     private bool consoleVisible = false;
     private bool wasJustOpened = false;
@@ -56,16 +58,62 @@ public class NewDebugConsole : MonoBehaviour
 
     private int LogCount = 0;
     private bool isResizing = false;
+    private string currentInput = "";
+    private int commandHistoryIndex = 0;
+    private List<string> commandHistory = new List<string>();
     
     private void ConsoleWindow(int id)
     {
-        if (Input.GetKeyDown(KeyCode.Return))
+        Event e = Event.current;
+        if (e.type == EventType.KeyDown)
         {
-            if (currentInput != "")
+            if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
             {
-                /*string returnValue = ExecuteCommand(currentInput);
-                FantabulousDebugger.Logger.LogInfo(returnValue);*/
-                currentInput = "";
+                if (!string.IsNullOrEmpty(currentInput))
+                {
+                    // Process the command
+                    Commands.ExecuteCommand(currentInput.ToLower());
+                    commandHistory.Add(currentInput);
+                    commandHistoryIndex = commandHistory.Count;
+                    currentInput = "";
+
+                    // Keep the history at a reasonable size
+                    if (commandHistory.Count > 100)
+                    {
+                        commandHistory.RemoveAt(0);
+                    }
+                    
+                    // Optional: Keeps focus in the box after hitting enter
+                    GUI.FocusControl("consoleInput"); 
+                }
+                // Consume the event so it doesn't trigger other logic
+                e.Use();
+            }
+            if (e.keyCode == KeyCode.UpArrow)
+            {
+                if (commandHistoryIndex > 0)
+                {
+                    currentInput = commandHistory[commandHistoryIndex - 1];
+                    commandHistoryIndex--;
+                }
+                e.Use();
+            }
+            if (e.keyCode == KeyCode.DownArrow)
+            {
+                if (commandHistoryIndex < commandHistory.Count)
+                {
+                    currentInput = commandHistory[commandHistoryIndex];
+                    commandHistoryIndex++;
+                }
+                e.Use();
+            }
+            if (e.keyCode == KeyCode.Escape)
+            {
+                consoleVisible = false;
+                GUI.FocusControl(null);
+                mainGUI.paused = false;
+                Screen.lockCursor = !mainGUI.paused;
+                e.Use();
             }
         }
     
@@ -144,8 +192,6 @@ public class NewDebugConsole : MonoBehaviour
         {
             GUI.FocusControl("consoleInput");
             wasJustOpened = false;
-
-            windowRect = new Rect(10, 10, Screen.width / 2.5f, Screen.height / 2.5f);
         }
     }
 }
