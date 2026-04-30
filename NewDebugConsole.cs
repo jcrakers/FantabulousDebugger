@@ -5,7 +5,6 @@ namespace FantabulousDebugger;
 
 public class NewDebugConsole : MonoBehaviour
 {
-    public static GameObject player;
     public static MainGUI mainGUI;
 
     public static void CreateDeveloperConsole()
@@ -15,7 +14,6 @@ public class NewDebugConsole : MonoBehaviour
         Commands commands = consoleObject.AddComponent<Commands>();
         GameObject.DontDestroyOnLoad(consoleObject);
 
-        player = GameObject.Find("Player");
         mainGUI = Object.FindObjectOfType<MainGUI>();
 
         FantabulousDebugger.Logger.LogInfo("Developer console created");
@@ -91,19 +89,33 @@ public class NewDebugConsole : MonoBehaviour
             }
             if (e.keyCode == KeyCode.UpArrow)
             {
-                if (commandHistoryIndex > 0)
-                {
-                    currentInput = commandHistory[commandHistoryIndex - 1];
-                    commandHistoryIndex--;
-                }
+                if (commandHistory.Count > 0 && commandHistoryIndex > 0)
+                    {
+                        commandHistoryIndex--;
+                        currentInput = commandHistory[commandHistoryIndex];
+                        // Move cursor to end of line
+                        TextEditor te = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
+                        if (te != null)
+                        {
+                            te.pos = currentInput.Length;
+                            te.selectPos = currentInput.Length;
+                        }
+                    }
                 e.Use();
             }
             if (e.keyCode == KeyCode.DownArrow)
             {
-                if (commandHistoryIndex < commandHistory.Count)
+                if (commandHistoryIndex < commandHistory.Count - 1)
                 {
-                    currentInput = commandHistory[commandHistoryIndex];
                     commandHistoryIndex++;
+                    currentInput = commandHistory[commandHistoryIndex];
+                    // Move cursor to end of line
+                    TextEditor te = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
+                    if (te != null)
+                    {
+                        te.pos = currentInput.Length;
+                        te.selectPos = currentInput.Length;
+                    }
                 }
                 e.Use();
             }
