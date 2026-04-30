@@ -37,31 +37,7 @@ public class FantabulousDebugger : BaseUnityPlugin
         // Plugin update logic
         if (Input.GetKeyDown(KeyCode.F7))
         {
-            string objectName = "Main Camera";
-            Component[] results = ObjectScanner.FindObjectComponents(objectName);
-            if (results.Length > 0)
-            {
-                Logger.LogInfo($"{objectName} components found: {results.Length} total");
-                foreach (var result in results)
-                {
-                    Logger.LogInfo(result?.GetType().Name ?? $"{objectName} Not found");
-                }
-            }
-            else
-            {
-                Logger.LogInfo($"{objectName} Not found");
-            }
-        }
-        if (Input.GetKeyDown(KeyCode.F8))
-        {
-            if (Input.GetKey(KeyCode.LeftAlt))
-            {
-                ObjectScanner.PrintGameObjects(false);
-            }
-            else
-            {
-                ObjectScanner.PrintGameObjects(true);
-            }
+
         }
         if (Input.GetKeyDown(KeyCode.F9))
         {
