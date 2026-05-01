@@ -34,7 +34,7 @@ public class Commands : MonoBehaviour
                 HandleLevelCommand(commandArgs);
                 break;
             case "noclip":
-                HandleNoclipCommand();
+                HandleNoclipCommand(commandArgs);
                 break;
             case "scan":
                 HandleScanCommand(commandArgs);
@@ -102,9 +102,27 @@ Inspect: Inspects object you're looking at or provide object name. Use 'inspect 
             return;
         }
 
-        player.transform.position = new Vector3(x, y, z);
-        player.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        Vector3 targetPosition = new Vector3(x, y, z);
+        PerformTeleport(targetPosition);
         FantabulousDebugger.Logger.LogInfo($"Teleporting to {x}, {y}, {z}");
+    }
+    
+    private static void PerformTeleport(Vector3 targetPosition)
+    {
+        // Update player position
+        player.transform.position = targetPosition;
+        
+        // Reset velocity to prevent physics issues
+        if (player.GetComponent<Rigidbody>() != null)
+        {
+            player.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        }
+        
+        // If noclip is enabled, update desired position as well
+        if (noclip)
+        {
+            desiredPlayerPosition = targetPosition;
+        }
     }
     
     private static void TeleportToObject(string objectName)
@@ -134,14 +152,20 @@ Inspect: Inspects object you're looking at or provide object name. Use 'inspect 
         
         // Teleport player to object position
         Vector3 targetPosition = targetObject.transform.position;
-        player.transform.position = targetPosition;
-        player.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        PerformTeleport(targetPosition);
         
         FantabulousDebugger.Logger.LogInfo($"Teleporting to {targetObject.name} at position {targetPosition}");
     }
 
     private static void HandleLevelCommand(string[] commandArgs)
     {
+        // Turn off noclip during level transition to prevent conflicts
+        if (noclip)
+        {
+            ToggleNoclip();
+            FantabulousDebugger.Logger.LogInfo("Noclip disabled during level transition");
+        }
+        
         LoadLevel(commandArgs);
     }
 
@@ -193,9 +217,71 @@ Inspect: Inspects object you're looking at or provide object name. Use 'inspect 
         }
     }
 
-    private static void HandleNoclipCommand()
+    private static void HandleNoclipCommand(string[] commandArgs)
     {
-        ToggleNoclip();
+        if (commandArgs.Length == 0)
+        {
+            // Toggle noclip
+            ToggleNoclip();
+            return;
+        }
+        
+        if (commandArgs[0].ToLower() == "speed")
+        {
+            // Set noclip speed
+            if (commandArgs.Length < 2)
+            {
+                FantabulousDebugger.Logger.LogWarning("Please provide a speed value. Usage: noclip speed <value>");
+                return;
+            }
+            
+            if (float.TryParse(commandArgs[1], out float newSpeed))
+            {
+                if (newSpeed <= 0)
+                {
+                    FantabulousDebugger.Logger.LogWarning("Speed must be greater than 0");
+                    return;
+                }
+                
+                noclipSpeed = newSpeed;
+                FantabulousDebugger.Logger.LogInfo($"Noclip speed set to {noclipSpeed}");
+            }
+            else
+            {
+                FantabulousDebugger.Logger.LogWarning("Invalid speed value. Please provide a valid number");
+            }
+            return;
+        }
+        
+        if (commandArgs[0].ToLower() == "boost")
+        {
+            // Set noclip boost multiplier
+            if (commandArgs.Length < 2)
+            {
+                FantabulousDebugger.Logger.LogWarning("Please provide a boost multiplier. Usage: noclip boost <multiplier>");
+                return;
+            }
+            
+            if (float.TryParse(commandArgs[1], out float newBoost))
+            {
+                if (newBoost <= 0)
+                {
+                    FantabulousDebugger.Logger.LogWarning("Boost multiplier must be greater than 0");
+                    return;
+                }
+                
+                noclipBoostSpeed = noclipSpeed * newBoost;
+                FantabulousDebugger.Logger.LogInfo($"Noclip boost multiplier set to {newBoost} (boost speed: {noclipBoostSpeed})");
+            }
+            else
+            {
+                FantabulousDebugger.Logger.LogWarning("Invalid boost value. Please provide a valid number");
+            }
+            return;
+        }
+        
+        // If we get here, it's an invalid argument
+        FantabulousDebugger.Logger.LogWarning("Invalid noclip argument. Usage: noclip [speed <value>|boost <multiplier>]");
     }
 
     private static void HandleScanCommand(string[] commandArgs)
@@ -569,16 +655,25 @@ Effects:
 Note: Health is automatically restored each frame while enabled";
                 
             case "noclip":
-                return @"Command: noclip
-Description: Toggles collision-free movement mode
-Usage: noclip
+                return @"Command: noclip [speed <value>|boost <multiplier>]
+Description: Toggles collision-free movement mode or adjusts speed settings
+Usage: 
+  noclip                    - Toggle noclip mode
+  noclip speed <value>      - Set normal movement speed
+  noclip boost <multiplier> - Set boost speed as multiplier of normal speed
 
 Effects:
   - When enabled: Player can move through walls and objects
   - When disabled: Normal collision detection restored
   - Movement: WASD + Space (up) + Ctrl (down) + Shift (boost)
-  - Speed: Normal (50), Boost (100)
+  - Default speeds: Normal (50), Boost (100)
   
+Speed Settings:
+  - speed: Sets the base movement speed (must be > 0)
+  - boost: Sets boost speed as multiplier of normal speed (must be > 0)
+  - Example: 'noclip speed 75' sets normal speed to 75
+  - Example: 'noclip boost 3' sets boost to 3x normal speed
+
 Note: Disables gravity and collision while enabled";
                 
             case "tp":
@@ -664,8 +759,8 @@ Note: Supports partial name matching and component-specific details";
         }
     }
 
-    private static float noclipSpeed = 50f;
-    private static float noclipBoostSpeed = 100f;
+    private static float noclipSpeed = 30f;
+    private static float noclipBoostSpeed = 60f;
 
     private void Update()
     {
@@ -754,17 +849,10 @@ Note: Supports partial name matching and component-specific details";
         if (moveDirection != Vector3.zero)
         {
             moveDirection = moveDirection.normalized;
-            desiredPlayerPosition += moveDirection * noclipSpeed * Time.deltaTime;
-        }
-
-        // Boost speed
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            noclipSpeed = noclipBoostSpeed;
-        }
-        else
-        {
-            noclipSpeed = 50f;
+            
+            // Determine current speed (normal or boost)
+            float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? noclipBoostSpeed : noclipSpeed;
+            desiredPlayerPosition += moveDirection * currentSpeed * Time.deltaTime;
         }
 
         // Halt player momentum and update position
