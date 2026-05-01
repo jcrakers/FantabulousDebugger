@@ -21,7 +21,7 @@ public class FantabulousDebugger : BaseUnityPlugin
         Logger = base.Logger;
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
 
-        Application.RegisterLogCallback(HandleLog);
+        //Application.RegisterLogCallback(HandleLog);
         var bepinexLogListener = new BepInExLogListener(HandleBepInExLog);
         BepInEx.Logging.Logger.Listeners.Add(bepinexLogListener);
 
@@ -35,18 +35,9 @@ public class FantabulousDebugger : BaseUnityPlugin
     private void Update()
     {
         // Plugin update logic
-        if (Input.GetKeyDown(KeyCode.F7))
-        {
-
-        }
-        if (Input.GetKeyDown(KeyCode.F9))
-        {
-            Logger.LogInfo($"Level number: {Application.loadedLevel} | Map Name: {Application.loadedLevelName}");
-        }
-
         if (!debugMenuCreated && Time.time > 1f)
         {
-            CreateDebugMenu();
+            CreateDebugMainMenu();
             debugMenuCreated = true;
         }
     }
@@ -63,7 +54,7 @@ public class FantabulousDebugger : BaseUnityPlugin
 
     public static List<string> logHistory = new();
 
-    private void CreateDebugMenu()
+    private void CreateDebugMainMenu()
     {
         Logger.LogInfo("Creating debug menu");
         GameObject debugLevelSelectObject = new GameObject("DebugLevelSelectObject");
@@ -73,6 +64,13 @@ public class FantabulousDebugger : BaseUnityPlugin
         debugLoadLevelComponent.levelToLoad = "hub";
         debugLoadLevelComponent.devbuild = "0.9";
         debugLoadLevelComponent.objectives = "placeholder";
+
+        if (!LegacyConsoleEnabled.Value)
+        {
+            // Add level select GUI component
+            GameObject levelSelectObject = new GameObject("LevelSelectGUI");
+            levelSelectObject.AddComponent<LevelSelectGUI>();
+        }
     }
 
     public class BepInExLogListener : ILogListener
