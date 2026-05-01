@@ -495,7 +495,121 @@ Inspect: Inspects object you're looking at or provide object name. Use 'inspect 
 
     private static string HelpForCommand(string command)
     {
-        return $"Help for {command}";
+        switch (command.ToLower())
+        {
+            case "help":
+                return @"Command: help
+Description: Shows available commands or detailed help for specific commands
+Usage: 
+  help                    - Shows all available commands
+  help <command>          - Shows detailed help for specific command
+
+Examples:
+  help                    - Lists all commands
+  help tp                 - Shows help for teleport command";
+                
+            case "godmode":
+                return @"Command: godmode
+Description: Toggles invincibility mode
+Usage: godmode
+
+Effects:
+  - When enabled: Player health is constantly set to maximum
+  - When disabled: Player health returns to normal
+  - Useful for: Testing difficult areas, avoiding death
+  
+Note: Health is automatically restored each frame while enabled";
+                
+            case "noclip":
+                return @"Command: noclip
+Description: Toggles collision-free movement mode
+Usage: noclip
+
+Effects:
+  - When enabled: Player can move through walls and objects
+  - When disabled: Normal collision detection restored
+  - Movement: WASD + Space (up) + Ctrl (down) + Shift (boost)
+  - Speed: Normal (50), Boost (100)
+  
+Note: Disables gravity and collision while enabled";
+                
+            case "tp":
+                return @"Command: tp <x> <y> <z>
+Description: Teleports player to specified coordinates
+Usage: tp <x> <y> <z>
+
+Parameters:
+  x, y, z - World coordinates to teleport to
+
+Examples:
+  tp 0 10 5            - Teleport to coordinates (0, 10, 5)
+  tp -100.5 2.3 45.2  - Teleport with decimal coordinates
+
+Note: Player velocity is reset to prevent physics issues";
+                
+            case "level":
+                return @"Command: level <name|index>
+Description: Loads specified level
+Usage: level <level_name> or level <level_index>
+
+Available Levels:
+  0: title
+  1: intro
+  2: hub
+  3: circlefriendfightyplace
+  4: ShamrockFakeCastle
+  5: signvilleussr
+  6: signmanBattle
+  7: thefantabula
+  8: hubdarkened
+  9: prison
+  10: Sham5KFight1
+  11: ShamrockCastle
+  12: ShamrockKingBoss
+
+Examples:
+  level hub               - Loads hub level
+  level 3                 - Loads circlefriendfightyplace
+  level ShamrockCastle     - Loads ShamrockCastle level
+
+Note: Level names are case-insensitive";
+                
+            case "scan":
+                return @"Command: scan [simple|detailed]
+Description: Scans and lists all game objects in the scene
+Usage: scan or scan simple or scan detailed
+
+Parameters:
+  simple    - Shows basic object information (default)
+  detailed  - Shows detailed object information
+
+Examples:
+  scan                  - Shows basic object list
+  scan simple           - Shows basic object list
+  scan detailed          - Shows detailed object information
+
+Note: Useful for finding object names for other commands";
+                
+            case "inspect":
+                return @"Command: inspect [object_name] [component_name]
+Description: Shows detailed information about game objects or components
+Usage: inspect or inspect <object_name> or inspect <object_name> <component>
+
+Parameters:
+  object_name   - Name of object to inspect (optional)
+  component    - Specific component to inspect (optional)
+
+Examples:
+  inspect                    - Inspects object you're looking at
+  inspect Player             - Inspects Player object
+  inspect Player rigidbody   - Inspects Rigidbody component on Player
+  inspect door boxcollider   - Inspects BoxCollider component on door object
+
+Note: Supports partial name matching and component-specific details";
+                
+            default:
+                return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
+        }
     }
 
     private static float noclipSpeed = 50f;
