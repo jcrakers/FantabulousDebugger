@@ -74,14 +74,29 @@ Inspect: Inspects object you're looking at or provide object name. Use 'inspect 
 
     private static void HandleTeleportCommand(string[] commandArgs)
     {
+        if (commandArgs.Length == 0)
+        {
+            FantabulousDebugger.Logger.LogWarning("Please provide coordinates or object name");
+            return;
+        }
+        
+        // Check if first argument is an object name (non-numeric)
+        if (!float.TryParse(commandArgs[0], out float x))
+        {
+            // Teleport to object
+            TeleportToObject(commandArgs[0]);
+            return;
+        }
+        
+        // Must be coordinate teleportation from here
         if (commandArgs.Length < 3)
         {
             FantabulousDebugger.Logger.LogWarning("Please provide X, Y, and Z coordinates");
             return;
         }
         
-        float x, y, z;
-        if (!float.TryParse(commandArgs[0], out x) || !float.TryParse(commandArgs[1], out y) || !float.TryParse(commandArgs[2], out z))
+        float y, z;
+        if (!float.TryParse(commandArgs[1], out y) || !float.TryParse(commandArgs[2], out z))
         {
             FantabulousDebugger.Logger.LogWarning("Please provide valid numeric coordinates");
             return;
@@ -90,6 +105,39 @@ Inspect: Inspects object you're looking at or provide object name. Use 'inspect 
         player.transform.position = new Vector3(x, y, z);
         player.GetComponent<Rigidbody>().velocity = Vector3.zero;
         FantabulousDebugger.Logger.LogInfo($"Teleporting to {x}, {y}, {z}");
+    }
+    
+    private static void TeleportToObject(string objectName)
+    {
+        // Find object by exact name first
+        GameObject targetObject = GameObject.Find(objectName);
+        
+        if (targetObject == null)
+        {
+            // Try to find by partial name (case-insensitive)
+            GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.name.ToLower().Contains(objectName.ToLower()))
+                {
+                    targetObject = obj;
+                    break;
+                }
+            }
+        }
+        
+        if (targetObject == null)
+        {
+            FantabulousDebugger.Logger.LogWarning($"Object '{objectName}' not found.");
+            return;
+        }
+        
+        // Teleport player to object position
+        Vector3 targetPosition = targetObject.transform.position;
+        player.transform.position = targetPosition;
+        player.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        
+        FantabulousDebugger.Logger.LogInfo($"Teleporting to {targetObject.name} at position {targetPosition}");
     }
 
     private static void HandleLevelCommand(string[] commandArgs)
@@ -534,18 +582,22 @@ Effects:
 Note: Disables gravity and collision while enabled";
                 
             case "tp":
-                return @"Command: tp <x> <y> <z>
-Description: Teleports player to specified coordinates
-Usage: tp <x> <y> <z>
+                return @"Command: tp <x> <y> <z> OR tp <object_name>
+Description: Teleports player to specified coordinates or to a game object's position
+Usage: tp <x> <y> <z> or tp <object_name>
 
 Parameters:
   x, y, z - World coordinates to teleport to
+  object_name - Name of game object to teleport to
 
 Examples:
   tp 0 10 5            - Teleport to coordinates (0, 10, 5)
   tp -100.5 2.3 45.2  - Teleport with decimal coordinates
+  tp Player             - Teleport to Player object's position
+  tp door               - Teleport to door object's position
+  tp orangeSphere        - Teleport to orangeSphere object's position
 
-Note: Player velocity is reset to prevent physics issues";
+Note: Supports partial name matching for object names";
                 
             case "level":
                 return @"Command: level <name|index>
