@@ -76,7 +76,7 @@ public class NewDebugConsole : MonoBehaviour
                     currentInput = "";
 
                     // Keep the history at a reasonable size
-                    if (commandHistory.Count > 100)
+                    if (commandHistory.Count > 500)
                     {
                         commandHistory.RemoveAt(0);
                     }
