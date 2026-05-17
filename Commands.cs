@@ -54,6 +54,9 @@ public class Commands : MonoBehaviour
             case "fullbright":
                 HandleFullbrightCommand(commandArgs);
                 break;
+            case "maxhealth":
+                HandleMaxHealthCommand(commandArgs);
+                break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
                 break;
@@ -759,6 +762,25 @@ Fullbright: Toggles fullbright lighting mode.");
         }
     }
 
+    private static void HandleMaxHealthCommand(string[] commandArgs)
+    {
+        if (commandArgs.Length == 0)
+        {
+            FantabulousDebugger.Logger.LogWarning("Usage: maxhealth <health>");
+            return;
+        }
+
+        if (!int.TryParse(commandArgs[0], out int health))
+        {
+            FantabulousDebugger.Logger.LogWarning("Invalid health value. Please provide a number.");
+            return;
+        }
+
+        Stats stats = player.GetComponent<Stats>();
+        PlayerPrefs.SetInt("MaxHealth", health);
+        stats.health = health;
+    }
+
     private static string HelpForCommand(string command)
     {
         switch (command.ToLower())
@@ -907,6 +929,19 @@ Examples:
   fullbright off       - Restore normal lighting and fog
 
 Note: Useful for exploring dark areas, debugging lighting issues, or maximum visibility";
+            case "maxhealth":
+                return @"Command: maxhealth <health>
+Description: Sets the player's maximum health
+Usage: maxhealth <health>
+
+Parameters:
+  health        - Maximum health value to set
+
+Examples:
+  maxhealth 3          - Set maximum health to 3
+  maxhealth 10         - Set maximum health to 10
+
+Note: Also sets current health to match the new maximum";
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
