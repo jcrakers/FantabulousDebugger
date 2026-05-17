@@ -786,11 +786,11 @@ Fullbright: Toggles fullbright lighting mode.");
 
     private static void HandleWeaponsCommand()
     {
-        PlayerPrefs.SetInt("unlockedWeapon", 1);
-        PlayerPrefs.SetInt("unlockedWep2", 1);
-        PlayerPrefs.SetInt("unlockedWep3", 1);
+        PlayerPrefs.SetInt("Shot1Unlocked", 1);
+        PlayerPrefs.SetInt("Shot2Unlocked", 1);
+        PlayerPrefs.SetInt("Shot3Unlocked", 1);
 
-        FantabulousDebugger.Logger.LogInfo("Weapons command not yet implemented.");
+        FantabulousDebugger.Logger.LogInfo("All weapons unlocked");
     }
 
     private static string HelpForCommand(string command)
