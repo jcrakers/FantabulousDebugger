@@ -57,6 +57,9 @@ public class Commands : MonoBehaviour
             case "maxhealth":
                 HandleMaxHealthCommand(commandArgs);
                 break;
+            case "weapons":
+                HandleWeaponsCommand();
+                break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
                 break;
@@ -781,6 +784,15 @@ Fullbright: Toggles fullbright lighting mode.");
         stats.health = health;
     }
 
+    private static void HandleWeaponsCommand()
+    {
+        PlayerPrefs.SetInt("unlockedWeapon", 1);
+        PlayerPrefs.SetInt("unlockedWep2", 1);
+        PlayerPrefs.SetInt("unlockedWep3", 1);
+
+        FantabulousDebugger.Logger.LogInfo("Weapons command not yet implemented.");
+    }
+
     private static string HelpForCommand(string command)
     {
         switch (command.ToLower())
@@ -942,6 +954,13 @@ Examples:
   maxhealth 10         - Set maximum health to 10
 
 Note: Also sets current health to match the new maximum";
+            case "weapons":
+                return @"Command: weapons
+Description: Unlocks all weapons
+Usage: weapons
+
+Note: Unlocks all weapons";
+
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
