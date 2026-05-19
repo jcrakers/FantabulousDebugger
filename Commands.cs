@@ -9,10 +9,14 @@ public class Commands : MonoBehaviour
     private static bool godmode = false;
     private static bool noclip = false;
     private static bool fullbright = false;
+    private static bool machineGun = false;
+    private static float fireRate = 0.05f;
     private static Vector3 desiredPlayerPosition;
     private static Collider playerCollider;
     private static Rigidbody playerRigidbody;
     private static GameObject player;
+    private static GameObject sphereThrower;
+    private static ThrowBall throwBall;
     
     // Fog settings storage
     private static bool originalFogState;
@@ -59,6 +63,9 @@ public class Commands : MonoBehaviour
                 break;
             case "weapons":
                 HandleWeaponsCommand();
+                break;
+            case "machinegun":
+                HandleMachineGunCommand(commandArgs);
                 break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
@@ -433,6 +440,31 @@ Fullbright: Toggles fullbright lighting mode.");
         }
         
         ObjectScanner.PrintGameObjects(simple);
+    }
+    
+    private static void HandleMachineGunCommand(string[] commandArgs)
+    {
+        float desiredFireRate = 0f;
+        if (commandArgs.Length > 0)
+        {
+            if (float.TryParse(commandArgs[0], out float rate))
+            {
+                desiredFireRate = 1 / rate;
+            }
+        }
+        
+        if (desiredFireRate != 0)
+        {
+            fireRate = desiredFireRate;
+            FantabulousDebugger.Logger.LogInfo($"Fire rate set to: {fireRate}");
+            machineGun = true;
+        }
+        else
+        {
+            machineGun = !machineGun;
+        }
+        
+        FantabulousDebugger.Logger.LogInfo($"Machine gun: {machineGun}");
     }
 
     private static void HandleInspectCommand(string[] commandArgs)
@@ -960,7 +992,19 @@ Description: Unlocks all weapons
 Usage: weapons
 
 Note: Unlocks all weapons";
+            case "machinegun":
+                return @"Command: machinegun <fireRate>
+Description: Enables machine gun mode
+Usage: machinegun <fireRate>
 
+Parameters:
+  fireRate      - Fire rate in shots per second (optional)
+
+Examples:
+  machinegun           - Enable machine gun mode
+  machinegun 30        - Enable machine gun mode with 30 shots per second
+
+Note: Enables machine gun mode";
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
@@ -990,17 +1034,54 @@ Note: Unlocks all weapons";
         {
             player = GameObject.Find("Player");
         }
-
-        if (godmode)
+        else
         {
-            Stats stats = player.GetComponent<Stats>();
-            stats.health = stats.maxHealth;
+            if (godmode)
+            {
+                Stats stats = player.GetComponent<Stats>();
+                stats.health = stats.maxHealth;
+            }
+
+            if (noclip)
+            {
+                HandleNoclipMovement();
+            }
         }
 
-        if (noclip)
+        if (sphereThrower == null)
         {
-            HandleNoclipMovement();
-        }      
+            sphereThrower = GameObject.Find("SphereThrower");
+        }
+        else
+        {
+            if (throwBall == null)
+            {
+                throwBall = sphereThrower.GetComponent<ThrowBall>();
+            }
+            else
+            {
+                if (machineGun && Input.GetButton("Fire1"))
+                {
+                    HandleMachineGun();
+                }
+            }
+        }
+    }
+
+    private float internalCooldown = 0f;
+
+    private void HandleMachineGun()
+    {
+        if (internalCooldown >= fireRate)
+        {
+            GameObject gameObject = (GameObject)Instantiate(throwBall.projectile, Camera.main.transform.position, Camera.main.transform.rotation);
+            gameObject.rigidbody.velocity = throwBall.transform.forward * 150f;
+            internalCooldown = 0f;
+        }
+        else
+        {
+            internalCooldown += Time.deltaTime;
+        }
     }
 
     private void HandleNoclipMovement()
