@@ -43,6 +43,9 @@ public class NewDebugConsole : MonoBehaviour
     private bool consoleVisible = false;
     private bool wasJustOpened = false;
     private Rect windowRect = new Rect(10, 10, Screen.width / 2.5f, Screen.height / 2.5f);
+    
+    private GUIStyle consoleLabelStyle;
+    private GUIStyle consoleTextFieldStyle;
 
     private void OnGUI()
     {
@@ -62,6 +65,22 @@ public class NewDebugConsole : MonoBehaviour
     
     private void ConsoleWindow(int id)
     {
+        // Initialize styles if null
+        if (consoleLabelStyle == null)
+        {
+            consoleLabelStyle = new GUIStyle(GUI.skin.label);
+            consoleLabelStyle.fontSize = 12;
+            consoleLabelStyle.fontStyle = FontStyle.Normal;
+            consoleLabelStyle.margin = new RectOffset(0, 0, 0, 0);
+            consoleLabelStyle.padding = new RectOffset(0, 0, 0, 0);
+        }
+        if (consoleTextFieldStyle == null)
+        {
+            consoleTextFieldStyle = new GUIStyle(GUI.skin.textField);
+            consoleTextFieldStyle.fontSize = 12;
+            consoleTextFieldStyle.fontStyle = FontStyle.Normal;
+        }
+
         Event e = Event.current;
         if (e.type == EventType.KeyDown)
         {
@@ -129,6 +148,8 @@ public class NewDebugConsole : MonoBehaviour
             }
         }
     
+        GUILayout.BeginVertical();
+        
         float padding = 10f;
         float textFieldHeight = 25f;
         float titleHeight = 20f;
@@ -136,7 +157,7 @@ public class NewDebugConsole : MonoBehaviour
         float scrollWidth = windowRect.width - (padding * 2);
         float scrollHeight = windowRect.height - titleHeight - textFieldHeight - (padding * 1.2f);
 
-        scrollPos = GUILayout.BeginScrollView(scrollPos, false, true, GUILayout.Width(scrollWidth), GUILayout.Height(scrollHeight));
+        scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(scrollWidth), GUILayout.Height(scrollHeight));
         foreach (string log in FantabulousDebugger.logHistory) {
             if (log.StartsWith("[Error") || log.StartsWith("[Exception")) {
                 GUI.color = Color.red;
@@ -145,7 +166,7 @@ public class NewDebugConsole : MonoBehaviour
             } else {
                 GUI.color = Color.white;
             }
-            GUILayout.Label(log);
+            GUILayout.Label(log, consoleLabelStyle);
         }
 
         if (FantabulousDebugger.logHistory.Count != LogCount)
@@ -158,7 +179,10 @@ public class NewDebugConsole : MonoBehaviour
         GUILayout.EndScrollView();
 
         GUI.SetNextControlName("consoleInput");
-        currentInput = GUI.TextField(new Rect(padding, windowRect.height - textFieldHeight - padding, windowRect.width - (padding * 2), textFieldHeight), currentInput, GUI.skin.textField);
+
+        currentInput = GUILayout.TextField(currentInput, GUILayout.Height(textFieldHeight));
+
+        GUILayout.EndVertical();
 
         Rect resizeHandle = new Rect(windowRect.width - 20, windowRect.height - 20, 20, 20);
         GUI.color = Color.blue;
