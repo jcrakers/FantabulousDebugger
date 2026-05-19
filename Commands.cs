@@ -67,6 +67,9 @@ public class Commands : MonoBehaviour
             case "machinegun":
                 HandleMachineGunCommand(commandArgs);
                 break;
+            case "addsausage":
+                HandleAddSausageCommand(commandArgs);
+                break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
                 break;
@@ -825,6 +828,30 @@ Fullbright: Toggles fullbright lighting mode.");
         FantabulousDebugger.Logger.LogInfo("All weapons unlocked");
     }
 
+    private static void HandleAddSausageCommand(string[] commandArgs)
+    {
+        int addsausage = 1;
+        if (commandArgs.Length > 0 && !int.TryParse(commandArgs[0], out addsausage))
+        {
+            FantabulousDebugger.Logger.LogWarning("Invalid sausage value. Please provide a number.");
+            return;
+        }
+        if (addsausage < 1)
+        {
+            FantabulousDebugger.Logger.LogWarning("Sausage value must be greater than 0.");
+            return;
+        }
+
+        Stats stats = player.GetComponent<Stats>();
+
+        stats.sausageCount += addsausage;
+        stats.totalSausages += addsausage;
+        int sausages = PlayerPrefs.GetInt("Sausages");
+        PlayerPrefs.SetInt("Sausages", sausages + addsausage);
+
+        FantabulousDebugger.Logger.LogInfo($"Added {addsausage} sausage(s). Total sausages: {sausages + addsausage}");
+    }
+
     private static string HelpForCommand(string command)
     {
         switch (command.ToLower())
@@ -1005,6 +1032,20 @@ Examples:
   machinegun 30        - Enable machine gun mode with 30 shots per second
 
 Note: Enables machine gun mode";
+
+            case "addsausage":
+                return @"Command: addsausage <count>
+Description: Adds sausages to the player's inventory
+Usage: addsausage <count>
+
+Parameters:
+  count         - Number of sausages to add (optional, default: 1)
+
+Examples:
+  addsausage           - Add 1 sausage
+  addsausage 5         - Add 5 sausages
+
+Note: Adds sausages to the player's current count and total count";
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
