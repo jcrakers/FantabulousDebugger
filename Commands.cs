@@ -92,7 +92,11 @@ TP: Teleports to the coordinates.
 Level: Loads the level provided.
 Scan: Scans and prints game objects. Use 'scan simple' for basic output.
 Inspect: Inspects object you're looking at or provide object name. Use 'inspect object component' for specific component inspection.
-Fullbright: Toggles fullbright lighting mode.");
+Fullbright: Toggles fullbright lighting mode.
+maxhealth: Sets the player's maximum health.
+weapons: Unlocks all weapons.
+machinegun: Enables machine gun mode.
+addsausage: Adds sausages to the player's count.");
     }
 
     private static void HandleGodmodeCommand()
