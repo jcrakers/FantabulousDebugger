@@ -67,8 +67,11 @@ public class Commands : MonoBehaviour
             case "machinegun":
                 HandleMachineGunCommand(commandArgs);
                 break;
-            case "addsausage":
+            case "sausage":
                 HandleAddSausageCommand(commandArgs);
+                break;
+            case "destroy":
+                HandleDestroyCommand(commandArgs);
                 break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
@@ -96,7 +99,8 @@ Fullbright: Toggles fullbright lighting mode.
 maxhealth: Sets the player's maximum health.
 weapons: Unlocks all weapons.
 machinegun: Enables machine gun mode.
-addsausage: Adds sausages to the player's count.");
+sausage: Adds sausages to the player's count.
+destroy: Destroys the object you're looking at.");
     }
 
     private static void HandleGodmodeCommand()
@@ -573,6 +577,67 @@ addsausage: Adds sausages to the player's count.");
             DisplayObjectInfo(targetObject);
         }
     }
+
+    private static void HandleDestroyCommand(string[] commandArgs)
+    {
+        GameObject targetObject = null;
+        if (commandArgs.Length == 1)
+        {
+            string objectName = commandArgs[0];
+            
+            // Try to find the object by name
+            targetObject = GameObject.Find(objectName);
+            
+            if (targetObject == null)
+            {
+                // Try to find in all objects
+                GameObject[] allObjects = FindObjectsOfType<GameObject>();
+                foreach (GameObject obj in allObjects)
+                {
+                    if (obj.name.ToLower().Contains(objectName.ToLower()))
+                    {
+                        targetObject = obj;
+                        break;
+                    }
+                }
+            }
+            
+            if (targetObject == null)
+            {
+                FantabulousDebugger.Logger.LogWarning($"Object '{objectName}' not found.");
+                return;
+            }
+        }
+        else
+        {
+            // Raycast to find object player is looking at
+            Camera playerCamera = Camera.main;
+            if (playerCamera != null && player != null)
+            {
+                Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+                RaycastHit hit;
+                
+                if (Physics.Raycast(ray, out hit, 100f))
+                {
+                    targetObject = hit.collider.gameObject;
+                }
+                else
+                {
+                    FantabulousDebugger.Logger.LogWarning("No object found in front of player.");
+                    return;
+                }
+            }
+            else
+            {
+                FantabulousDebugger.Logger.LogWarning("Cannot perform raycast - no camera or player found.");
+                return;
+            }
+        }
+        
+        // Destroy the object
+        GameObject.Destroy(targetObject);
+        FantabulousDebugger.Logger.LogInfo($"Destroyed object: {targetObject.name}");
+    }
     
     private static void DisplayObjectInfo(GameObject obj)
     {
@@ -1037,19 +1102,32 @@ Examples:
 
 Note: Enables machine gun mode";
 
-            case "addsausage":
-                return @"Command: addsausage <count>
+            case "sausage":
+                return @"Command: sausage <count>
 Description: Adds sausages to the player's inventory
-Usage: addsausage <count>
+Usage: sausage <count>
 
 Parameters:
   count         - Number of sausages to add (optional, default: 1)
 
 Examples:
-  addsausage           - Add 1 sausage
-  addsausage 5         - Add 5 sausages
+  sausage           - Add 1 sausage
+  sausage 5         - Add 5 sausages
 
 Note: Adds sausages to the player's current count and total count";
+            case "destroy":
+                return @"Command: destroy <objectName>
+Description: Destroys an object by name or by raycasting to find the object the player is looking at
+Usage: destroy <objectName>
+
+Parameters:
+  objectName    - Name of the object to destroy (optional)
+
+Examples:
+  destroy           - Destroy the object the player is looking at
+  destroy sausage   - Destroy the object named 'sausage'
+
+Note: Destroys the specified object or the object the player is looking at";
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
