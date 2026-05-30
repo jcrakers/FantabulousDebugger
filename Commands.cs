@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Linq;
 using System;
+using System.Globalization;
 
 namespace FantabulousDebugger;
 
@@ -11,6 +12,7 @@ public class Commands : MonoBehaviour
     private static bool fullbright = false;
     private static bool machineGun = false;
     private static float fireRate = 0.05f;
+    private static bool wireframeMode = false;
     private static Vector3 desiredPlayerPosition;
     private static Collider playerCollider;
     private static Rigidbody playerRigidbody;
@@ -72,6 +74,9 @@ public class Commands : MonoBehaviour
                 break;
             case "destroy":
                 HandleDestroyCommand(commandArgs);
+                break;
+            case "wireframe":
+                HandleWireframeCommand();
                 break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
@@ -274,6 +279,7 @@ destroy: Destroys the object you're looking at.");
                 }
                 
                 noclipSpeed = newSpeed;
+                noclipBoostSpeed = noclipSpeed * noclipBoostMultiplier;
                 FantabulousDebugger.Logger.LogInfo($"Noclip speed set to {noclipSpeed}");
             }
             else
@@ -301,6 +307,7 @@ destroy: Destroys the object you're looking at.");
                 }
                 
                 noclipBoostSpeed = noclipSpeed * newBoost;
+                noclipBoostMultiplier = newBoost;
                 FantabulousDebugger.Logger.LogInfo($"Noclip boost multiplier set to {newBoost} (boost speed: {noclipBoostSpeed})");
             }
             else
@@ -575,6 +582,43 @@ destroy: Destroys the object you're looking at.");
         else
         {
             DisplayObjectInfo(targetObject);
+        }
+    }
+
+    private static void HandleWireframeCommand()
+    {
+        // Toggle wireframe mode
+        wireframeMode = !wireframeMode;
+        FantabulousDebugger.Logger.LogInfo($"Wireframe mode: {(wireframeMode ? "ON" : "OFF")}");
+        
+        if (Camera.main != null)
+        {
+            if (Camera.main.gameObject.GetComponent<Wireframe>() == null && wireframeMode)
+            {
+                Camera.main.gameObject.AddComponent<Wireframe>();
+            }
+            else if (Camera.main.gameObject.GetComponent<Wireframe>() != null && !wireframeMode)
+            {
+                Destroy(Camera.main.gameObject.GetComponent<Wireframe>());
+            }
+        }
+    }
+    class Wireframe : MonoBehaviour
+    {
+        void OnPreRender()
+        {
+            if (wireframeMode)
+            {
+                GL.wireframe = true;
+            }
+            else
+            {
+                GL.wireframe = false;
+            }
+        }
+        void OnPostRender()
+        {
+            GL.wireframe = false;
         }
     }
 
@@ -1128,6 +1172,12 @@ Examples:
   destroy sausage   - Destroy the object named 'sausage'
 
 Note: Destroys the specified object or the object the player is looking at";
+            case "wireframe":
+                return @"Command: wireframe
+Description: Toggles wireframe mode
+Usage: wireframe
+
+Note: Toggles wireframe mode";
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
@@ -1136,6 +1186,7 @@ Note: Destroys the specified object or the object the player is looking at";
 
     private static float noclipSpeed = 30f;
     private static float noclipBoostSpeed = 60f;
+    private static float noclipBoostMultiplier = 2f;
 
     private void OnLevelWasLoaded(int level)
     {
