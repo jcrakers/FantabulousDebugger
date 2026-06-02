@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace FantabulousDebugger;
 
 public static class HelpSystem
@@ -26,7 +24,8 @@ weapons: Unlocks all weapons.
 machinegun: Enables machine gun mode.
 sausage: Adds sausages to the player's count.
 destroy: Destroys the object you're looking at.
-wireframe: Toggles wireframe mode.");
+wireframe: Toggles wireframe mode.
+collision: Toggles collision visualization.");
     }
 
     public static string HelpForCommand(string command)
@@ -242,6 +241,14 @@ Description: Toggles wireframe mode
 Usage: wireframe
 
 Note: Toggles wireframe mode";
+
+            case "collision":
+                return @"Command: collision
+Description: Toggles collision visualization
+Usage: collision
+
+Note: Toggles collision visualization, recommended to use with wireframe mode";
+
                 
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";

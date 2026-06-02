@@ -57,7 +57,7 @@ public class Commands : MonoBehaviour
             case "wireframe":
                 VisualEffects.HandleWireframeCommand();
                 break;
-            case "colliders":
+            case "collision":
                 VisualEffects.HandleCollidersCommand();
                 break;
             default:
@@ -96,13 +96,5 @@ public class Commands : MonoBehaviour
         }
 
         GameStateCommands.Update();
-    }
-
-    void OnRenderObject()
-    {
-        if (VisualEffects.DrawColliders)
-        {
-            // TODO: Implement colliders drawing
-        }
     }
 }
