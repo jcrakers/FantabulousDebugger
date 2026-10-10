@@ -25,7 +25,8 @@ machinegun: Enables machine gun mode.
 sausage: Adds sausages to the player's count.
 destroy: Destroys the object you're looking at.
 wireframe: Toggles wireframe mode.
-collision: Toggles collision visualization.");
+collision: Toggles collision visualization.
+pointer: Creates/manages a debug pointer marker.");
     }
 
     public static string HelpForCommand(string command)
@@ -249,7 +250,43 @@ Usage: collision
 
 Note: Toggles collision visualization, recommended to use with wireframe mode";
 
-                
+            case "pointer":
+            case "point":
+                return @"Command: pointer [set|move|rotate]
+Description: Creates and manages a debug pointer marker that persists between scenes
+Usage:
+  pointer                  - Shows pointer position and rotation
+  pointer set              - Creates/moves pointer where player is looking
+  pointer set <x> <y> <z> - Creates/moves pointer at coordinates
+  pointer set <object>    - Creates/moves pointer at object's position
+  pointer move <x|y|z> <amount> - Moves pointer by amount on axis
+  pointer move <object>   - Moves pointer to object's position
+  pointer move reset      - Resets pointer position to (0, 0, 0)
+  pointer rotate <x|y|z> <degrees> - Rotates pointer by degrees on axis
+  pointer rotate <object> - Rotates pointer to match object's rotation
+  pointer rotate reset    - Resets pointer rotation to (0, 0, 0)
+
+Shortcuts:
+  point                    - Same as pointer
+  pointer m <axis> <amount> - Same as pointer move
+  pointer r <axis> <degrees> - Same as pointer rotate
+
+Examples:
+  pointer                  - Show current pointer info
+  pointer set              - Create pointer where you're looking
+  pointer set 10 5 3       - Move pointer to coordinates (10, 5, 3)
+  pointer set door         - Move pointer to door object
+  pointer move y 1         - Move pointer up by 1 unit
+  pointer m x -2           - Move pointer left by 2 units
+  pointer move Player      - Move pointer to Player's position
+  pointer move reset       - Reset pointer position to origin
+  pointer rotate y 45      - Rotate pointer 45 degrees around Y axis
+  pointer r z 90           - Rotate pointer 90 degrees around Z axis
+  pointer rotate door      - Rotate pointer to match door's rotation
+  pointer rotate reset     - Reset pointer rotation to identity
+
+Note: The pointer persists between scene changes and uses a sphere with two arrows (yellow for forward, cyan for up) to indicate orientation";
+
             default:
                 return $"'{command}' is not a recognized command. Type 'help' to see available commands.";
         }

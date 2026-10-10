@@ -60,6 +60,12 @@ public class Commands : MonoBehaviour
             case "collision":
                 VisualEffects.HandleCollidersCommand();
                 break;
+            case "pointer":
+                Pointer.HandlePointerCommand(commandArgs);
+                break;
+            case "point":
+                Pointer.HandlePointerCommand(commandArgs);
+                break;
             default:
                 FantabulousDebugger.Logger.LogWarning($"Unrecognized command: {command}");
                 break;

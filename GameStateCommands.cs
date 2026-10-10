@@ -44,6 +44,8 @@ public static class GameStateCommands
         Stats stats = player.GetComponent<Stats>();
         PlayerPrefs.SetInt("MaxHealth", health);
         stats.health = health;
+        
+        FantabulousDebugger.Logger.LogInfo($"Max health set to {health}");
     }
 
     public static void HandleWeaponsCommand()
